@@ -173,5 +173,4 @@ if __name__ == '__main__':
     sscore_table.to_csv(f's_score_{output_suffix}.csv')
     details.to_csv(f'pnl_details_{output_suffix}.csv')
     pnl.to_csv(f'pnl_{output_suffix}.csv')
-    # plt.plot(pnl)
     logging.info("Done")
