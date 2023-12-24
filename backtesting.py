@@ -161,6 +161,10 @@ if __name__ == '__main__':
         prev_position = stock_position
 
         long_position = stock_position[stock_position > 0]
+        if pnl_index % 100 == 0:
+            sscore_table.to_csv('s_score.csv')
+            details.to_csv('pnl_details.csv')
+            pnl.to_csv('pnl.csv')
 
     sscore_table.to_csv('s_score.csv')
     details.to_csv('pnl_details.csv')

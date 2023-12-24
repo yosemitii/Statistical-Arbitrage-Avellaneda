@@ -10,8 +10,9 @@ def pca_factorize(ret_table, n_components=15):
     _ret_table = ret_table.fillna(0)
     _ret_mean = _ret_table.mean(axis=0)
     _ret_stddev = _ret_table.std(axis=0)
+    # _ret_stddev could be zeros
     _std_ret = (_ret_table - _ret_mean) / _ret_stddev
-    pca_model = PCA(n_components=n_components).fit(_std_ret)
+    pca_model = PCA(n_components=n_components).fit(_std_ret.fillna(0))
     _weights = pd.DataFrame(pca_model.components_, columns=_ret_table.columns) / _ret_stddev
     pca_factors_ret = pd.DataFrame(_ret_table @ _weights.T,index=ret_table.index)
     return pca_factors_ret, _weights
