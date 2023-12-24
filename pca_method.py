@@ -15,7 +15,7 @@ def pca_factorize(ret_table, n_components=15):
     pca_model = PCA(n_components=n_components).fit(_std_ret.fillna(0))
     _weights = pd.DataFrame(pca_model.components_, columns=_ret_table.columns) / _ret_stddev
     pca_factors_ret = pd.DataFrame(_ret_table @ _weights.T,index=ret_table.index)
-    return pca_factors_ret, _weights
+    return pca_factors_ret.copy(), _weights.copy()
 
 
 def pca_sscore(residual, keppa=8.4):

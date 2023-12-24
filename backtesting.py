@@ -8,6 +8,7 @@ from preprocessing import load_crsp_v2, load_spy_constituents
 from pca_method import pca_factorize, pca_sscore
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+import datetime
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(message)s',)
 
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     stock_path = os.getenv("STOCK_DATA_PATH")
     spy_path = os.getenv("SPY_HOLDINGS_PATH")
     spy_dict = load_spy_constituents(spy_path)
+    output_suffix = datetime.datetime.now().strftime("%m_%d_%H_%M_%S")
 
     all_spy_names = set()
     for s in spy_dict.values():
@@ -57,7 +59,7 @@ if __name__ == '__main__':
     pnl = pd.Series(INITIAL_VALUE, index=trading_days[CORR_WINDOW-1:])
     details = pd.DataFrame(0.0, index=pnl.index,
                            columns=['lmv', 'long_pnl', 'long_ret',
-                                    'smv', 'short_smv', 'short_ret',
+                                    'smv', 'short_pnl', 'short_ret',
                                     'market_neutral_ret', 'dollar_neutral_ret'])
     sscore_table = pd.DataFrame(index=ret_table.index[CORR_WINDOW:], columns=ret_table.columns)
     for dt_index, asof_date in enumerate(trading_days):
@@ -76,12 +78,14 @@ if __name__ == '__main__':
                                 & (df[DATE_COL] < mkt_portfolio_end_date)
                                 & (df[ID_COL].isin(spy_constituents))
                                 ]
+        _mkt_std = mkt_portfolio_data.groupby('PERMNO')['DlyRet'].apply(lambda x: x.std())
+        zombie_constituents = set(_mkt_std[_mkt_std.isna()].index)
 
         logging.info(f"Building market portfolio during ({mkt_portfolio_start_date}, {mkt_portfolio_end_date}]."
               f"Tracing back {len(mkt_portfolio_data[DATE_COL].unique())} days"
               f"for {len(mkt_portfolio_data[ID_COL].unique())} securities")
         mkt_ret = mkt_portfolio_data.pivot_table(index='DlyCalDt', columns='PERMNO', values='DlyRet')
-
+        mkt_ret.drop(zombie_constituents.intersection(set(mkt_ret.columns)), axis=1, inplace=True)
         factor_ret, weights = pca_factorize(mkt_ret)
 
         # Calculate residual
@@ -161,13 +165,13 @@ if __name__ == '__main__':
         prev_position = stock_position
 
         long_position = stock_position[stock_position > 0]
-        if pnl_index % 100 == 0:
-            sscore_table.to_csv('s_score.csv')
-            details.to_csv('pnl_details.csv')
-            pnl.to_csv('pnl.csv')
+        if pnl_index % 30 == 0 and pnl_index != 0:
+            sscore_table.to_csv(f's_score_{output_suffix}.csv')
+            details.to_csv(f'pnl_details_{output_suffix}.csv')
+            pnl.to_csv(f'pnl_{output_suffix}.csv')
 
-    sscore_table.to_csv('s_score.csv')
-    details.to_csv('pnl_details.csv')
-    pnl.to_csv('pnl.csv')
+    sscore_table.to_csv(f's_score_{output_suffix}.csv')
+    details.to_csv(f'pnl_details_{output_suffix}.csv')
+    pnl.to_csv(f'pnl_{output_suffix}.csv')
     # plt.plot(pnl)
     logging.info("Done")
