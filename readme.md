@@ -18,5 +18,9 @@ SPY_HOLDINGS_PATH="STOCK_SPY_HOLDING_FILE_PATH_HERE"
 Method 2:
 Just change the paths in `backtesting.py` code to your paths
 
-### 2. Run
+### 2. Config
+- The config is also in `backtesting.py`
+- Change different threshold by modifying `S_BUY_OPEN`, `S_BUY_CLOSE`, `S_SELL_OPEN`, `S_SELL_CLOSE`
+
+### 3. Run the backtest
 Run the main function of `backtesting.py`
